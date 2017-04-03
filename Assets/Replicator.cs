@@ -30,54 +30,57 @@ public class Replicator : MonoBehaviour {
 	// Use this for initialization
 
 
-	void Update () {
+//	void Update () {
+//
+//		if(lastRadius != radius) {
+//			UpdatePositions();
+//		}
+//		lastRadius = radius;
+//
+//		if(lastVariance != variance) {
+//			UpdatePositions();
+//		}
+//		lastVariance = variance;
+//
+//		if(lastM != m) {
+//			GenerateMarkers();
+//			UpdatePositions();
+//		}
+//		lastM = m;
+//	}
 
-		if(lastRadius != radius) {
-			UpdatePositions();
-		}
-		lastRadius = radius;
+	public void Initialize() {
 
-		if(lastVariance != variance) {
-			UpdatePositions();
-		}
-		lastVariance = variance;
-
-		if(lastM != m) {
-			GenerateMarkers();
-			UpdatePositions();
-		}
-		lastM = m;
-	}
-
-	public static void Initialize() {
-
-		foreach(Replicator r in GameObject.FindObjectsOfType<Replicator>()) {
+		print("rep init");
 			//Create module pool
-			r.poolTransform = r.transform.Find("MarkerPool");
+			poolTransform = transform.Find("MarkerPool");
 
 			//Create active objects container
-			r.activeMarkersContainer = r.transform.Find("ActiveMarkers");
+			activeMarkersContainer = transform.Find("ActiveMarkers");
 
 			//Create marker gameobjects
-			r.markerPool = new List<GameObject>();
-			for (int i = 0; i < r.max_m; i++) {
-				r.markerPool.Add(Instantiate(r.markerPrefab) as GameObject);
-				r.ReturnMarkerToPool(r.markerPool[i].transform);
+		print("creating pool objects: " + max_m);
+			markerPool = new List<GameObject>();
+			for (int i = 0; i < max_m; i++) {
+				markerPool.Add(Instantiate(markerPrefab) as GameObject);
+				ReturnMarkerToPool(markerPool[i].transform);
 			}
 
 			//Generate random seeds
-			for(int i = 0; i < r.max_m; i++) {
-				r.randomSeeds.Add(new Vector2(Random.value, Random.value));
+			for(int i = 0; i < max_m; i++) {
+				randomSeeds.Add(new Vector2(Random.value, Random.value));
 			}//m-dimensional by n-dimensional array with random marker positions against 2d location 
-			r.UpdatePositions();
-		}
+
+
+		GenerateMarkers();
+			UpdatePositions();
 
 
 	}
 
 	// Update is called once per frame
 	void UpdatePositions () {
-		print("update positions");
+//		print("update positions");
 		for(int i = 0; i < activeMarkers.Count; i++) {
 //				print("setting position to: " + randomSeeds[i].ToString());
 			activeMarkers[i].position = GetRandomPointFromSeed(randomSeeds[i].x, randomSeeds[i].y);
@@ -85,7 +88,7 @@ public class Replicator : MonoBehaviour {
 	}
 
 	void GenerateMarkers() {
-		
+		print("GENERATION");
 		for(int i = 0; i < activeMarkers.Count; i++) { //Release into pool
 			ReturnMarkerToPool(activeMarkers[i]);
 				}
@@ -95,7 +98,10 @@ public class Replicator : MonoBehaviour {
 			activeMarkers.Add(AcquireMarkerFromPool());
 		}
 		UpdatePositions();
-		MainController.HandleMarkersReady();
+
+		HeatMap hm = GetComponent<HeatMap>();
+		if(hm != null) hm.Initialize(activeMarkersContainer);
+
 	}
 
 		Vector2 GetRandomPointFromSeed(float random1, float random2) {
