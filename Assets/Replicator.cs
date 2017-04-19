@@ -13,6 +13,7 @@ public class Replicator : MonoBehaviour
 
 	public Transform poolTransform;
 	public Transform activeMarkersContainer;
+	public Transform centroidsContainer;
 
 	private List<GameObject> markerPool;
 
@@ -37,21 +38,21 @@ public class Replicator : MonoBehaviour
 
 		void Update () {
 	
-			if(lastRadius != radius) {
-				UpdatePositions();
-			}
-			lastRadius = radius;
-	
-		if(lastAlpha != alpha) {
-				UpdatePositions();
-			}
-		lastAlpha = alpha;
-	
-			if(lastM != m) {
-				GenerateMarkers();
-				UpdatePositions();
-			}
-			lastM = m;
+//			if(lastRadius != radius) {
+//				UpdatePositions();
+//			}
+//			lastRadius = radius;
+//	
+//		if(lastAlpha != alpha) {
+//				UpdatePositions();
+//			}
+//		lastAlpha = alpha;
+//	
+//			if(lastM != m) {
+//				GenerateMarkers();
+//				UpdatePositions();
+//			}
+//			lastM = m;
 		}
 
 	public void Initialize ()
@@ -77,9 +78,9 @@ public class Replicator : MonoBehaviour
 		}//m-dimensional by n-dimensional array with random marker positions against 2d location 
 
 
-		GenerateMarkers ();
 		GenerateCentroids();
-		UpdatePositions ();
+		GenerateMarkers ();
+
 
 
 	}
@@ -103,9 +104,10 @@ public class Replicator : MonoBehaviour
 		activeMarkers.Clear ();
 			
 		for (int i = 0; i < m; i++) {
-			activeMarkers.Add (AcquireMarkerFromPool ());
+			activeMarkers.Add (AcquireMarkerFromPool (activeMarkersContainer));
 		}
 
+		UpdatePositions ();
 		HeatMap hm = GetComponent<HeatMap> ();
 		if (hm != null)
 			hm.Initialize (activeMarkersContainer);
@@ -118,9 +120,12 @@ public class Replicator : MonoBehaviour
 		centroids = new List<Centroid>();
 		float lastLowLimit = 0f;
 		for(int i = 0; i < centroidCount; i++) {
-			float highLowLimit = lastLowLimit + 1f / (float)(i + 1f);
-			centroids.Add(new Centroid(new Vector2(lastLowLimit, highLowLimit), GetRandomPointInCircle(Random.value, Random.value)));
-			lastLowLimit = highLowLimit;
+			float highLimit = lastLowLimit + ((1 - lastLowLimit) / 2);
+			Transform marker =  AcquireMarkerFromPool (centroidsContainer);
+			Vector2 randomPointInCircle = GetRandomPointInCircle(Random.value, Random.value);
+			marker.position = randomPointInCircle;
+			centroids.Add(new Centroid(new Vector2(lastLowLimit, highLimit), randomPointInCircle, marker.gameObject));
+			lastLowLimit = highLimit;
 		}
 	}
 
@@ -145,7 +150,7 @@ public class Replicator : MonoBehaviour
 		if(matchingCentroids.Count > 1) {
 			Debug.LogError("Something went wrong.");
 		} else if (matchingCentroids.Count() == 1) {
-			targetCentroidLocation = matchingCentroids[0].pLimit;
+			targetCentroidLocation = matchingCentroids[0].location;
 		} else { 
 			//Set it to rawCoordinates
 			targetCentroidLocation = rawCoordinates;
@@ -156,10 +161,10 @@ public class Replicator : MonoBehaviour
 		return adjustedLocation;
 	}
 
-	Transform AcquireMarkerFromPool ()
+	Transform AcquireMarkerFromPool (Transform parent)
 	{
 		Transform marker = poolTransform.GetChild (0);
-		marker.SetParent (activeMarkersContainer);
+		marker.SetParent (parent);
 		return marker;
 	}
 

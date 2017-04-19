@@ -9,9 +9,12 @@ public class Centroid
 
 	public Vector2 location;
 
-	public Centroid (Vector2 pLimit, Vector2 locations) {
+	public GameObject marker;
+
+	public Centroid (Vector2 pLimit, Vector2 location, GameObject marker) {
 		this.pLimit = pLimit;
 		this.location = location;
+		this.marker = marker;
 	}
 }
 
