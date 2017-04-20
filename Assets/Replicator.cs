@@ -54,7 +54,7 @@ public class Replicator : MonoBehaviour
 //			}
 //			lastM = m;
 		}
-
+		
 	public void Initialize ()
 	{
 		

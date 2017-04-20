@@ -20,6 +20,8 @@ public class HeatMap : MonoBehaviour {
 
 	public float heatConstant = 100;
 
+	public Color[] colorPath;
+
 	private List<GameObject> pixels = new List<GameObject>();
 
 	// Use this for initialization
@@ -68,7 +70,15 @@ public class HeatMap : MonoBehaviour {
 //					print("sample heat: " + heat);
 					if(heat > maxAlpha) maxAlpha = heat;
 
-					sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, heat);
+					Color newColor;
+					if(heat <= 1) {
+						newColor = Color.Lerp(colorPath[0], colorPath[1], heat);
+					} else {
+						float upperBound = 10.0f;
+						newColor = Color.Lerp(colorPath[1], colorPath[2], heat / upperBound);
+					}
+
+					sr.color = newColor;
 					hm.pixels.Add(pixel);
 
 					pixel.transform.localScale = new Vector2((2 * domeRadius) / (lengthInSquares * 3) - spacing, (2 * domeRadius) / (lengthInSquares * 3) - spacing);
